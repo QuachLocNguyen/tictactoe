@@ -1,4 +1,4 @@
-﻿import streamlit as st
+import streamlit as st
 import numpy as np
 
 # Khởi tạo bảng trò chơi
@@ -95,7 +95,7 @@ def play_game():
     if st.button("Reset Game"):
         global board
         board = np.full((3, 3), ' ')
-        st.experimental_rerun()
+        st.experimental_set_query_params()
     
     for i in range(3):
         cols = st.columns(3)
@@ -113,6 +113,6 @@ def play_game():
                             st.write(f"Người chơi {current_player} thắng!")
                             game_over = True
                         current_player = 'X'
-                    st.experimental_rerun()
+                    st.experimental_set_query_params()
 
 play_game()
