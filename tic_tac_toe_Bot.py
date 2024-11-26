@@ -1,5 +1,6 @@
 import streamlit as st
 import numpy as np
+import time  # Thêm để tạo hiệu ứng tính toán
 
 # Constants
 PLAYER = "X"  # Human
@@ -10,6 +11,7 @@ if "board" not in st.session_state:
     st.session_state.board = np.full((3, 3), "")  # Empty board
     st.session_state.current_player = PLAYER
     st.session_state.winner = None
+    st.session_state.bot_calculating = False  # Trạng thái bot đang tính toán
 
 # Check winner
 def check_winner(board):
@@ -57,6 +59,8 @@ def minimax(board, depth, is_maximizing):
 
 # Bot's move
 def bot_move():
+    st.session_state.bot_calculating = True  # Bật trạng thái "đang tính toán"
+    time.sleep(1)  # Hiệu ứng tính toán
     best_score = -float("inf")
     move = None
     for i in range(3):
@@ -70,10 +74,11 @@ def bot_move():
                     move = (i, j)
     if move:
         st.session_state.board[move] = BOT
+    st.session_state.bot_calculating = False  # Tắt trạng thái "đang tính toán"
 
 # Game logic
 def play_turn(row, col):
-    if st.session_state.board[row, col] == "" and not st.session_state.winner:
+    if st.session_state.board[row, col] == "" and not st.session_state.winner and not st.session_state.bot_calculating:
         st.session_state.board[row, col] = PLAYER
         st.session_state.winner = check_winner(st.session_state.board)
         if not st.session_state.winner:
@@ -82,6 +87,10 @@ def play_turn(row, col):
 
 # UI rendering
 st.title("Tic Tac Toe with Minimax Bot")
+
+# Show "Bot đang tính toán" message
+if st.session_state.bot_calculating:
+    st.write("🤖 Bot đang tính toán...")
 
 # Draw the board
 for i in range(3):
@@ -94,12 +103,13 @@ for i in range(3):
 # Show result
 if st.session_state.winner:
     if st.session_state.winner == "Draw":
-        st.write("It's a draw!")
+        st.write("🤝 It's a draw!")
     else:
-        st.write(f"{st.session_state.winner} wins!")
+        st.write(f"🎉 {st.session_state.winner} wins!")
 
 # Reset button
 if st.button("Restart"):
     st.session_state.board = np.full((3, 3), "")
     st.session_state.current_player = PLAYER
     st.session_state.winner = None
+    st.session_state.bot_calculating = False
