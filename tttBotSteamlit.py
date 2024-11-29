@@ -1,157 +1,172 @@
 import streamlit as st
 import numpy as np
 
-# Hằng số
+# Constants
 BOARD_ROWS, BOARD_COLS = 3, 3
 SQUARE_SIZE = 100
 
-# Màu sắc
+# Colors
 BG_COLOR = (28, 170, 156)
 LINE_COLOR = (23, 145, 135)
 CIRCLE_COLOR = (239, 231, 200)
 CROSS_COLOR = (66, 66, 66)
 WIN_LINE_COLOR = (255, 0, 0)
 
-# Bảng trò chơi
-board = np.full((BOARD_ROWS, BOARD_COLS), ' ')
+def initialize_game():
+    """Initialize a new game board."""
+    return np.full((BOARD_ROWS, BOARD_COLS), ' ')
 
-def draw_lines(canvas):
-    # Đường ngang
-    for i in range(1, BOARD_ROWS):
-        canvas.write_text("", x=0, y=i * SQUARE_SIZE, font_size=1, color=LINE_COLOR)
-    # Đường dọc
-    for i in range(1, BOARD_COLS):
-        canvas.write_text("", x=i * SQUARE_SIZE, y=0, font_size=1, color=LINE_COLOR)
-
-def draw_figures(canvas):
+def draw_board(board):
+    """Create a visual representation of the board using Streamlit columns."""
+    cols = st.columns(BOARD_COLS)
     for row in range(BOARD_ROWS):
         for col in range(BOARD_COLS):
-            if board[row][col] == 'X':
-                canvas.write_text("X", x=col * SQUARE_SIZE + SQUARE_SIZE // 4, y=row * SQUARE_SIZE + SQUARE_SIZE // 4, font_size=50, color=CROSS_COLOR)
-                canvas.write_text("X", x=col * SQUARE_SIZE + 3 * SQUARE_SIZE // 4, y=row * SQUARE_SIZE + 3 * SQUARE_SIZE // 4, font_size=50, color=CROSS_COLOR)
-            elif board[row][col] == 'O':
-                canvas.circle(col * SQUARE_SIZE + SQUARE_SIZE // 2, row * SQUARE_SIZE + SQUARE_SIZE // 2, SQUARE_SIZE // 3, stroke_color=CIRCLE_COLOR, stroke_width=15)
+            with cols[col]:
+                cell_value = board[row][col]
+                if cell_value == 'X':
+                    st.markdown(f'<div style="color:{CROSS_COLOR};font-size:48px;text-align:center;">X</div>', unsafe_allow_html=True)
+                elif cell_value == 'O':
+                    st.markdown(f'<div style="color:{CIRCLE_COLOR};font-size:48px;text-align:center;">O</div>', unsafe_allow_html=True)
+                else:
+                    st.markdown(f'<div style="height:50px;"></div>', unsafe_allow_html=True)
 
-def check_win(player):
-    # Kiểm tra các hàng
-    for row in range(BOARD_ROWS):
-        if all(board[row][col] == player for col in range(BOARD_COLS)):
-            return True, [(row, col) for col in range(BOARD_COLS)]
-    # Kiểm tra các cột
-    for col in range(BOARD_COLS):
-        if all(board[row][col] == player for row in range(BOARD_ROWS)):
-            return True, [(row, col) for row in range(BOARD_ROWS)]
-    # Kiểm tra đường chéo chính
-    if all(board[i][i] == player for i in range(BOARD_ROWS)):
-        return True, [(i, i) for i in range(BOARD_ROWS)]
-    # Kiểm tra đường chéo phụ
-    if all(board[i][BOARD_COLS - 1 - i] == player for i in range(BOARD_ROWS)):
-        return True, [(i, BOARD_COLS - 1 - i) for i in range(BOARD_ROWS)]
-    return False, []
-
-def evaluate():
-    for row in board:
-        if row[0] == row[1] == row[2] != ' ':
-            return 10 if row[0] == 'O' else -10
-    for col in range(BOARD_COLS):
-        if board[0][col] == board[1][col] == board[2][col] != ' ':
-            return 10 if board[0][col] == 'O' else -10
-    if board[0][0] == board[1][1] == board[2][2] != ' ':
-        return 10 if board[0][0] == 'O' else -10
-    if board[0][2] == board[1][1] == board[2][0] != ' ':
-        return 10 if board[0][2] == 'O' else -10
-    return 0
-
-def minimax(depth, is_max):
-    score = evaluate()
-    if score == 10 or score == -10:
-        return score
-    if all(board[row][col] != ' ' for row in range(BOARD_ROWS) for col in range(BOARD_COLS)):
-        return 0
-    if is_max:
-        best = -1000
-        for i in range(BOARD_ROWS):
-            for j in range(BOARD_COLS):
-                if board[i][j] == ' ':
-                    board[i][j] = 'O'
-                    best = max(best, minimax(depth + 1, not is_max))
-                    board[i][j] = ' '
-        return best
-    else:
-        best = 1000
-        for i in range(BOARD_ROWS):
-            for j in range(BOARD_COLS):
-                if board[i][j] == ' ':
-                    board[i][j] = 'X'
-                    best = min(best, minimax(depth + 1, not is_max))
-                    board[i][j] = ' '
-        return best
-
-def find_best_move():
-    best_val = -1000
-    best_move = (-1, -1)
+def check_win(board, player):
+    """Check if the specified player has won."""
+    # Check rows and columns
     for i in range(BOARD_ROWS):
-        for j in range(BOARD_COLS):
-            if board[i][j] == ' ':
-                board[i][j] = 'O'
-                move_val = minimax(0, False)
-                board[i][j] = ' '
-                if move_val > best_val:
-                    best_move = (i, j)
-                    best_val = move_val
-    return best_move
+        if all(board[i, j] == player for j in range(BOARD_COLS)) or \
+           all(board[j, i] == player for j in range(BOARD_ROWS)):
+            return True
 
-def make_move(row, col, player):
-    if board[row][col] == ' ':
-        board[row][col] = player
+    # Check diagonals
+    if all(board[i, i] == player for i in range(BOARD_ROWS)) or \
+       all(board[i, BOARD_COLS - 1 - i] == player for i in range(BOARD_ROWS)):
         return True
+
     return False
 
+def is_board_full(board):
+    """Check if the board is completely filled."""
+    return ' ' not in board
+
+def evaluate(board):
+    """Evaluate the board state for the minimax algorithm."""
+    if check_win(board, 'O'):
+        return 10
+    elif check_win(board, 'X'):
+        return -10
+    return 0
+
+def minimax(board, depth, is_maximizing):
+    """Minimax algorithm with depth tracking."""
+    score = evaluate(board)
+
+    if score == 10:
+        return score - depth
+    if score == -10:
+        return score + depth
+    if is_board_full(board):
+        return 0
+
+    if is_maximizing:
+        best_score = float('-inf')
+        for row in range(BOARD_ROWS):
+            for col in range(BOARD_COLS):
+                if board[row, col] == ' ':
+                    board[row, col] = 'O'
+                    score = minimax(board, depth + 1, False)
+                    board[row, col] = ' '
+                    best_score = max(best_score, score)
+        return best_score
+    else:
+        best_score = float('inf')
+        for row in range(BOARD_ROWS):
+            for col in range(BOARD_COLS):
+                if board[row, col] == ' ':
+                    board[row, col] = 'X'
+                    score = minimax(board, depth + 1, True)
+                    board[row, col] = ' '
+                    best_score = min(best_score, score)
+        return best_score
+
+def find_best_move(board):
+    """Find the best move for the AI player."""
+    best_score = float('-inf')
+    best_move = None
+
+    for row in range(BOARD_ROWS):
+        for col in range(BOARD_COLS):
+            if board[row, col] == ' ':
+                board[row, col] = 'O'
+                score = minimax(board, 0, False)
+                board[row, col] = ' '
+                if score > best_score:
+                    best_score = score
+                    best_move = (row, col)
+
+    return best_move
+
 def play_game():
-    st.title("Tic Tac Toe")
-    canvas = st.empty()
-    current_player = 'X'
-    game_over = False
+    """Main game loop implemented with Streamlit."""
+    st.title("Tic Tac Toe: Human vs AI")
 
-    while True:
-        draw_lines(canvas)
-        draw_figures(canvas)
+    # Initialize game state
+    if 'board' not in st.session_state:
+        st.session_state.board = initialize_game()
+    if 'current_player' not in st.session_state:
+        st.session_state.current_player = 'X'
+    if 'game_over' not in st.session_state:
+        st.session_state.game_over = False
 
-        if not game_over:
-            if current_player == 'X':
-                clicked = canvas.button("Your turn", key="player_turn")
-                if clicked:
-                    mouseX, mouseY = st.session_state.get("clicked_pos", (None, None))
-                    if mouseX is not None and mouseY is not None:
-                        row, col = mouseY // SQUARE_SIZE, mouseX // SQUARE_SIZE
-                        if make_move(row, col, current_player):
-                            win, win_cells = check_win(current_player)
-                            if win:
-                                for row, col in win_cells:
-                                    canvas.write_text("", x=col * SQUARE_SIZE, y=row * SQUARE_SIZE, font_size=1, color=WIN_LINE_COLOR)
-                                st.write(f"Player {current_player} wins!")
-                                game_over = True
-                            current_player = 'O'
-                            st.session_state.clicked_pos = None
+    # Draw the current board state
+    draw_board(st.session_state.board)
+
+    # Player's turn
+    if not st.session_state.game_over and st.session_state.current_player == 'X':
+        row_col = st.radio("Select a cell:", 
+                           [f"Row {row}, Column {col}" for row in range(BOARD_ROWS) 
+                            for col in range(BOARD_COLS) 
+                            if st.session_state.board[row, col] == ' '])
+
+        if st.button("Make Move"):
+            row, col = map(int, row_col.replace('Row ', '').replace(', Column ', ' ').split())
+            st.session_state.board[row, col] = 'X'
+
+            # Check for win or draw
+            if check_win(st.session_state.board, 'X'):
+                st.success("Congratulations! You win!")
+                st.session_state.game_over = True
+            elif is_board_full(st.session_state.board):
+                st.warning("It's a draw!")
+                st.session_state.game_over = True
             else:
-                row, col = find_best_move()
-                make_move(row, col, current_player)
-                win, win_cells = check_win(current_player)
-                if win:
-                    for row, col in win_cells:
-                        canvas.write_text("", x=col * SQUARE_SIZE, y=row * SQUARE_SIZE, font_size=1, color=WIN_LINE_COLOR)
-                    st.write(f"Computer (O) wins!")
-                    game_over = True
-                current_player = 'X'
+                st.session_state.current_player = 'O'
 
-        if game_over:
-            if st.button("Play Again"):
-                board[:] = [' ' for _ in range(BOARD_COLS)] for _ in range(BOARD_ROWS)
-                game_over = False
-                current_player = 'X'
-                canvas.empty()
+    # AI's turn
+    if not st.session_state.game_over and st.session_state.current_player == 'O':
+        move = find_best_move(st.session_state.board)
+        st.session_state.board[move] = 'O'
 
-        st.session_state.clicked_pos = st.experimental_get_query_params().get("clicked", (None, None))
+        # Check for win or draw
+        if check_win(st.session_state.board, 'O'):
+            st.error("AI wins! Better luck next time.")
+            st.session_state.game_over = True
+        elif is_board_full(st.session_state.board):
+            st.warning("It's a draw!")
+            st.session_state.game_over = True
+        else:
+            st.session_state.current_player = 'X'
+
+    # Restart game option
+    if st.session_state.game_over:
+        if st.button("Play Again"):
+            st.session_state.board = initialize_game()
+            st.session_state.current_player = 'X'
+            st.session_state.game_over = False
+            st.experimental_rerun()
+
+def main():
+    play_game()
 
 if __name__ == "__main__":
-    play_game()
+    main()
