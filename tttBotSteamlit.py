@@ -18,36 +18,19 @@ board = np.full((BOARD_ROWS, BOARD_COLS), ' ')
 def draw_lines(canvas):
     # Đường ngang
     for i in range(1, BOARD_ROWS):
-        canvas.line(
-            (0, i * SQUARE_SIZE), (BOARD_COLS * SQUARE_SIZE, i * SQUARE_SIZE),
-            width=15, color=LINE_COLOR
-        )
+        canvas.write_text("", x=0, y=i * SQUARE_SIZE, font_size=1, color=LINE_COLOR)
     # Đường dọc
     for i in range(1, BOARD_COLS):
-        canvas.line(
-            (i * SQUARE_SIZE, 0), (i * SQUARE_SIZE, BOARD_ROWS * SQUARE_SIZE),
-            width=15, color=LINE_COLOR
-        )
+        canvas.write_text("", x=i * SQUARE_SIZE, y=0, font_size=1, color=LINE_COLOR)
 
 def draw_figures(canvas):
     for row in range(BOARD_ROWS):
         for col in range(BOARD_COLS):
             if board[row][col] == 'X':
-                canvas.line(
-                    (col * SQUARE_SIZE + SQUARE_SIZE // 4, row * SQUARE_SIZE + SQUARE_SIZE // 4),
-                    (col * SQUARE_SIZE + 3 * SQUARE_SIZE // 4, row * SQUARE_SIZE + 3 * SQUARE_SIZE // 4),
-                    width=25, color=CROSS_COLOR
-                )
-                canvas.line(
-                    (col * SQUARE_SIZE + SQUARE_SIZE // 4, row * SQUARE_SIZE + 3 * SQUARE_SIZE // 4),
-                    (col * SQUARE_SIZE + 3 * SQUARE_SIZE // 4, row * SQUARE_SIZE + SQUARE_SIZE // 4),
-                    width=25, color=CROSS_COLOR
-                )
+                canvas.write_text("X", x=col * SQUARE_SIZE + SQUARE_SIZE // 4, y=row * SQUARE_SIZE + SQUARE_SIZE // 4, font_size=50, color=CROSS_COLOR)
+                canvas.write_text("X", x=col * SQUARE_SIZE + 3 * SQUARE_SIZE // 4, y=row * SQUARE_SIZE + 3 * SQUARE_SIZE // 4, font_size=50, color=CROSS_COLOR)
             elif board[row][col] == 'O':
-                canvas.circle(
-                    (col * SQUARE_SIZE + SQUARE_SIZE // 2, row * SQUARE_SIZE + SQUARE_SIZE // 2),
-                    SQUARE_SIZE // 3, width=15, color=CIRCLE_COLOR
-                )
+                canvas.circle(col * SQUARE_SIZE + SQUARE_SIZE // 2, row * SQUARE_SIZE + SQUARE_SIZE // 2, SQUARE_SIZE // 3, stroke_color=CIRCLE_COLOR, stroke_width=15)
 
 def check_win(player):
     # Kiểm tra các hàng
@@ -145,11 +128,7 @@ def play_game():
                             win, win_cells = check_win(current_player)
                             if win:
                                 for row, col in win_cells:
-                                    canvas.line(
-                                        (col * SQUARE_SIZE, row * SQUARE_SIZE),
-                                        ((col + 1) * SQUARE_SIZE, (row + 1) * SQUARE_SIZE),
-                                        width=5, color=WIN_LINE_COLOR
-                                    )
+                                    canvas.write_text("", x=col * SQUARE_SIZE, y=row * SQUARE_SIZE, font_size=1, color=WIN_LINE_COLOR)
                                 st.write(f"Player {current_player} wins!")
                                 game_over = True
                             current_player = 'O'
@@ -160,22 +139,17 @@ def play_game():
                 win, win_cells = check_win(current_player)
                 if win:
                     for row, col in win_cells:
-                        canvas.line(
-                            (col * SQUARE_SIZE, row * SQUARE_SIZE),
-                            ((col + 1) * SQUARE_SIZE, (row + 1) * SQUARE_SIZE),
-                            width=5, color=WIN_LINE_COLOR
-                        )
+                        canvas.write_text("", x=col * SQUARE_SIZE, y=row * SQUARE_SIZE, font_size=1, color=WIN_LINE_COLOR)
                     st.write(f"Computer (O) wins!")
                     game_over = True
                 current_player = 'X'
 
         if game_over:
             if st.button("Play Again"):
-                board[:] = [[' ' for _ in range(BOARD_COLS)] for _ in range(BOARD_ROWS)]
+                board[:] = [' ' for _ in range(BOARD_COLS)] for _ in range(BOARD_ROWS)
                 game_over = False
                 current_player = 'X'
                 canvas.empty()
-
 
         st.session_state.clicked_pos = st.experimental_get_query_params().get("clicked", (None, None))
 
