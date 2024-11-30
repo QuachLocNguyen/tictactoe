@@ -153,17 +153,18 @@ def main():
 
     if st.session_state.game_over:
         if st.session_state.winner == 'X':
-            st.write("⬜") # Added empty cell to complete the result display
+            st.success("You win! 🎉")
         elif st.session_state.winner == 'O':
-            st.write("⬜") # Added empty cell to complete the result display
+            st.error("Computer wins! 😢")
         elif st.session_state.winner == 'Draw':
-            st.write("⬜") # Added empty cell to complete the result display
+            st.warning("It's a draw! 🤝")
         
-        if st.button("Play Again"):
-            st.session_state.board = [[' ' for _ in range(3)] for _ in range(3)]
-            st.session_state.game_over = False
-            st.session_state.winner = None
-            st.experimental_rerun()
+        while st.session_state.game_over:
+            if st.button("Play Again"):
+                st.session_state.board = [[' ' for _ in range(3)] for _ in range(3)]
+                st.session_state.game_over = False
+                st.session_state.winner = None
+                st.experimental_rerun()
 
 if __name__ == '__main__':
     main()
