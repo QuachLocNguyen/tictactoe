@@ -150,14 +150,6 @@ def main():
                         st.warning("It's a draw! 🤝")
                         st.session_state.game_over = True
                         st.session_state.winner = 'Draw'
-
-    if st.session_state.game_over:
-        if st.session_state.winner == 'X':
-            st.success("You win! 🎉")
-        elif st.session_state.winner == 'O':
-            st.error("Computer wins! 😢")
-        elif st.session_state.winner == 'Draw':
-            st.warning("It's a draw! 🤝")
         
         while st.session_state.game_over:
             if st.button("Play Again"):
