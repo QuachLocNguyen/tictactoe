@@ -100,6 +100,7 @@ def get_board_state_emoji(board):
 def main():
     st.title("Tic Tac Toe with AI")
 
+    # Initialize session state variables if not already set
     if 'board' not in st.session_state:
         st.session_state.board = [[' ' for _ in range(3)] for _ in range(3)]
     if 'game_over' not in st.session_state:
@@ -113,7 +114,23 @@ def main():
     for row in emoji_board:
         st.write(' '.join(row))
 
-    if not st.session_state.game_over:
+    # Display winner message if game is over
+    if st.session_state.game_over:
+        if st.session_state.winner == 'X':
+            st.success("You win! 🎉")
+        elif st.session_state.winner == 'O':
+            st.error("Computer wins! 😢")
+        elif st.session_state.winner == 'Draw':
+            st.warning("It's a draw! 🤝")
+
+        # Play Again button
+        if st.button("Play Again"):
+            st.session_state.board = [[' ' for _ in range(3)] for _ in range(3)]
+            st.session_state.game_over = False
+            st.session_state.winner = None
+            st.experimental_rerun()
+    else:
+        # Game is not over, continue playing
         col1, col2 = st.columns(2)
         with col1:
             row = st.selectbox("Select Row", [0, 1, 2], key='row_select')
@@ -128,11 +145,9 @@ def main():
                 # Check if player won
                 winner = check_winner(board)
                 if winner == 'X':
-                    st.success("You win! 🎉")
                     st.session_state.game_over = True
                     st.session_state.winner = 'X'
                 elif winner == 'Draw':
-                    st.warning("It's a draw! 🤝")
                     st.session_state.game_over = True
                     st.session_state.winner = 'Draw'
                 else:
@@ -143,20 +158,11 @@ def main():
                     # Check if computer won
                     winner = check_winner(board)
                     if winner == 'O':
-                        st.error("Computer wins! 😢")
                         st.session_state.game_over = True
                         st.session_state.winner = 'O'
                     elif winner == 'Draw':
-                        st.warning("It's a draw! 🤝")
                         st.session_state.game_over = True
                         st.session_state.winner = 'Draw'
-        
-        while st.session_state.game_over:
-            if st.button("Play Again"):
-                st.session_state.board = [[' ' for _ in range(3)] for _ in range(3)]
-                st.session_state.game_over = False
-                st.session_state.winner = None
-                st.experimental_rerun()
 
 if __name__ == '__main__':
     main()
